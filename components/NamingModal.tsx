@@ -46,19 +46,19 @@ const NamingModal: React.FC<NamingModalProps> = ({ isOpen, title, inputLabel, de
             role="dialog"
         >
             <div 
-                className="bg-slate-800 rounded-lg shadow-xl w-full max-w-md p-6 border border-slate-700"
+                className="bg-[#251740] rounded-lg shadow-xl w-full max-w-md p-6 border border-[#3A2A5D]"
                 onClick={e => e.stopPropagation()}
                 onKeyDown={handleKeyDown}
             >
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold text-white">{title}</h2>
-                    <button onClick={onCancel} className="text-slate-400 hover:text-white transition-colors">
+                    <button onClick={onCancel} className="text-gray-400 hover:text-white transition-colors">
                         <CloseIcon className="w-6 h-6" />
                     </button>
                 </div>
                 <div className="space-y-4">
                     <div>
-                        <label htmlFor="name-input" className="block text-sm font-medium text-slate-300 mb-2">
+                        <label htmlFor="name-input" className="block text-sm font-medium text-gray-300 mb-2">
                             {inputLabel}
                         </label>
                         <input
@@ -67,19 +67,19 @@ const NamingModal: React.FC<NamingModalProps> = ({ isOpen, title, inputLabel, de
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             autoFocus
-                            className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                            className="w-full bg-[#3A2A5D] border border-[#4C3A7A] rounded-md px-3 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-[#F4B83A] focus:border-[#F4B83A]"
                         />
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
                         <button 
                             onClick={onCancel}
-                            className="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-md transition-colors"
+                            className="px-4 py-2 bg-[#4C3A7A] hover:bg-[#5E48A7] text-white font-semibold rounded-md transition-colors"
                         >
                             Cancel
                         </button>
                         <button 
                             onClick={handleSaveClick}
-                            className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-md transition-colors"
+                            className="px-4 py-2 bg-[#F4B83A] hover:bg-yellow-400 text-black font-bold rounded-md transition-colors"
                         >
                             {buttonText}
                         </button>

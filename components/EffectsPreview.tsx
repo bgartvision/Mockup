@@ -224,22 +224,22 @@ const EffectsPreview: React.FC<EffectsPreviewProps> = ({ background, product, lo
 
     if (!background || !product) {
         return (
-            <div className="flex items-center justify-center h-full bg-slate-800 rounded-lg text-slate-400 shadow-sm">
+            <div className="flex items-center justify-center h-full bg-[#251740] rounded-lg text-gray-400 shadow-sm">
                 Select a background and product to see a preview.
             </div>
         );
     }
 
     return (
-        <div className="h-full flex flex-col p-4 bg-slate-800 rounded-lg shadow-sm">
+        <div className="h-full flex flex-col p-4 bg-[#251740] rounded-lg shadow-sm">
             <h2 className="text-xl font-bold text-white mb-4">Live Preview & Position Editor</h2>
-            <div ref={containerRef} className="flex-grow flex items-center justify-center bg-slate-900/50 rounded-md overflow-hidden p-2 relative">
+            <div ref={containerRef} className="flex-grow flex items-center justify-center bg-[#1A0F2D]/50 rounded-md overflow-hidden p-2 relative">
                  <canvas ref={canvasRef} className="max-w-full max-h-full object-contain" />
                  <div style={overlayStyle}>
                     {productBox && (
                          <PlacementBox
                             box={{x: productBox.x * 100, y: productBox.y * 100, width: productBox.width * 100, height: productBox.height * 100}}
-                            color="#06b6d4" // cyan-500
+                            color="#F4B83A" // yellow accent
                             label="Product"
                             onMouseDown={(e, type, corner) => handleMouseDown(e, 'product', type, corner)}
                         />

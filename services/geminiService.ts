@@ -32,7 +32,9 @@ export const generateBackgroundImage = async (prompt: string): Promise<ImageItem
         return {
             id: uuidv4(),
             name: `${prompt.substring(0, 20)}.png`,
-            dataUrl: dataUrl
+            dataUrl: dataUrl,
+            placement: { x: 0.15, y: 0.15, width: 0.7, height: 0.7 },
+            logoPlacement: { x: 0.05, y: 0.05, width: 0.2, height: 0.2 },
         };
     } else {
         throw new Error("Image generation failed, no images returned.");

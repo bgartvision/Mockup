@@ -52,7 +52,7 @@ const LogoUploader: React.FC<LogoUploaderProps> = ({ onUpload }) => {
             onDragOver={handleDragOver}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
-            className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200 ${isDragOver ? 'border-cyan-400 bg-slate-700' : 'border-slate-600 hover:border-cyan-500 hover:bg-slate-700/50'}`}
+            className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200 ${isDragOver ? 'border-[#F4B83A] bg-[#3A2A5D]' : 'border-[#4C3A7A] hover:border-[#F4B83A] hover:bg-[#251740]/50'}`}
         >
             <input
                 ref={inputRef}
@@ -61,11 +61,11 @@ const LogoUploader: React.FC<LogoUploaderProps> = ({ onUpload }) => {
                 className="hidden"
                 onChange={handleFileChange}
             />
-            <UploadIcon className="w-10 h-10 text-slate-500 mb-3" />
-            <p className="text-center text-slate-400">
-                <span className="font-semibold text-cyan-500">Click to upload logo</span> or drag and drop
+            <UploadIcon className="w-10 h-10 text-gray-500 mb-3" />
+            <p className="text-center text-gray-400">
+                <span className="font-semibold text-[#F4B83A]">Click to upload logo</span> or drag and drop
             </p>
-            <p className="text-xs text-slate-500 mt-1">PNG or JPG, 500x500px recommended</p>
+            <p className="text-xs text-gray-500 mt-1">PNG or JPG, 500x500px recommended</p>
         </div>
     );
 };

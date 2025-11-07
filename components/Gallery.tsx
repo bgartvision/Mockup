@@ -29,7 +29,7 @@ const Gallery: React.FC<GalleryProps> = ({ images, type, onDelete, onSelect, sel
                 return (
                     <div 
                         key={item.id} 
-                        className={`relative group aspect-square bg-slate-900 rounded-md overflow-hidden transition-all duration-200 ${type === 'background' ? 'cursor-pointer' : ''} ${isSelected ? 'ring-2 ring-cyan-400' : ''}`}
+                        className={`relative group aspect-square bg-[#1A0F2D] rounded-md overflow-hidden transition-all duration-200 ${type === 'background' ? 'cursor-pointer' : ''} ${isSelected ? 'ring-2 ring-[#F4B83A]' : ''}`}
                         onClick={() => type === 'background' && onSelect && onSelect(item.id)}
                     >
                         <img src={item.dataUrl} alt={item.name} className="w-full h-full object-cover" />

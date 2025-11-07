@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import JSZip from 'jszip';
@@ -7,7 +8,6 @@ import Header from './components/Header';
 import ControlSection from './components/ControlSection';
 import ImageUploader from './components/ImageUploader';
 import Gallery from './components/Gallery';
-import GeminiBackgroundGenerator from './components/GeminiBackgroundGenerator';
 import EffectsEditor from './components/EffectsEditor';
 import EffectsPreview from './components/EffectsPreview';
 import Welcome from './components/Welcome';
@@ -17,6 +17,8 @@ import { createTemplate, loadTemplate } from './services/templateService';
 import Toggle from './components/Toggle';
 import LogoUploader from './components/LogoUploader';
 import NamingModal from './components/NamingModal';
+import ErrorModal from './components/ErrorModal';
+import SplashScreen from './components/SplashScreen';
 
 const DEFAULT_SHADING: ShadingOptions = { enabled: true, angle: 135, distance: 10, blur: 20, opacity: 50, previewVisible: true };
 const initialDefaultColorId = uuidv4();
@@ -31,7 +33,7 @@ interface NamingModalConfig {
 }
 
 function App() {
-    const [appState, setAppState] = useState<'welcome' | 'editing'>('welcome');
+    const [appState, setAppState] = useState<'splash' | 'welcome' | 'editing'>('splash');
     const [backgrounds, setBackgrounds] = useState<ImageItem[]>([]);
     const [products, setProducts] = useState<ImageItem[]>([]);
     const [logo, setLogo] = useState<ImageItem | null>(null);
@@ -44,8 +46,9 @@ function App() {
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [results, setResults] = useState<ResultItem[]>([]);
-    const [activeBgTab, setActiveBgTab] = useState<'upload' | 'ai' | 'template'>('upload');
+    const [activeBgTab, setActiveBgTab] = useState<'upload' | 'template'>('upload');
     const [namingModalConfig, setNamingModalConfig] = useState<NamingModalConfig | null>(null);
+    const [errorModalMessage, setErrorModalMessage] = useState<string | null>(null);
 
 
     const allPlacementsSet = useMemo(() => 
@@ -95,22 +98,6 @@ function App() {
         setIsLoading(false);
     };
 
-    const addAiBackground = (item: ImageItem) => {
-        setBackgrounds(prev => {
-            const updated = [...prev, item];
-            if (!selectedPreviewBgId) {
-                setSelectedPreviewBgId(updated[0]?.id || null);
-            }
-            return updated;
-        });
-        setAppState('editing');
-    };
-
-    const handleStartAi = () => {
-        setAppState('editing');
-        setActiveBgTab('ai');
-    };
-    
     const handleLogoUpload = async (files: FileList | null) => {
         if (!files || files.length === 0) return;
         const file = files[0];
@@ -311,7 +298,7 @@ function App() {
         setWorkspaceView('welcome');
         setSelectedPreviewBgId(null);
         setActiveBgTab('upload');
-        setAppState('welcome');
+        setAppState('splash');
     };
     
      const handleBackClick = () => {
@@ -333,7 +320,7 @@ function App() {
             saveAs(zipBlob, `${sanitizedFileName}.zip`);
         } catch (error) {
             console.error('Failed to create template:', error);
-            alert('Error creating template.');
+            setErrorModalMessage('Error creating template.');
         } finally {
             setIsLoading(false);
         }
@@ -341,7 +328,7 @@ function App() {
 
     const handleSaveTemplateClick = () => {
         if (!allPlacementsSet) {
-            alert("Please set placement for all backgrounds before saving a template.");
+            setErrorModalMessage("Please set placement for all backgrounds before saving a template.");
             return;
         }
         setNamingModalConfig({
@@ -371,7 +358,7 @@ function App() {
             setWorkspaceView('preview');
         } catch (error) {
             console.error('Failed to load template:', error);
-            alert('Error loading template. Please check the file format.');
+            setErrorModalMessage('Error loading template. Please check the file format.');
         } finally {
             setIsLoading(false);
         }
@@ -396,14 +383,14 @@ function App() {
                     mockups: results.filter(r => r.productId === p.id)
                 }));
                 return (
-                     <div className="h-full flex flex-col p-4 md:p-6 bg-slate-800 rounded-lg shadow-sm">
+                     <div className="h-full flex flex-col p-4 md:p-6 bg-[#251740] rounded-lg shadow-sm">
                         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                             <h2 className="text-2xl font-bold text-white">Generated Mockups</h2>
-                            <div className="flex gap-2">
-                                <button onClick={handleReset} className="flex items-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                            <div className="flex flex-wrap gap-2">
+                                <button onClick={handleReset} className="flex items-center gap-2 bg-[#4C3A7A] hover:bg-[#5E48A7] text-white font-bold py-2 px-4 rounded-lg transition-colors">
                                     <RestartIcon /> Start Over
                                 </button>
-                                <button onClick={handleDownloadAllClick} className="flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-lg transition-colors">
+                                <button onClick={handleDownloadAllClick} className="flex items-center gap-2 bg-[#F4B83A] hover:bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg transition-colors">
                                     <DownloadIcon /> Download All (.zip)
                                 </button>
                             </div>
@@ -412,8 +399,8 @@ function App() {
                             {groupedResults.map(group => (
                                 <div key={group.id} className="mb-8">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-xl font-semibold text-slate-200">{group.name}</h3>
-                                        <button onClick={() => handleDownloadByProductClick(group.id)} className="flex items-center gap-2 text-sm bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-1 px-3 rounded-md transition-colors">
+                                        <h3 className="text-xl font-semibold text-gray-200">{group.name}</h3>
+                                        <button onClick={() => handleDownloadByProductClick(group.id)} className="flex items-center gap-2 text-sm bg-[#F4B83A] hover:bg-yellow-400 text-black font-semibold py-1 px-3 rounded-md transition-colors">
                                             <DownloadIcon className="w-4 h-4" /> Download Product (.zip)
                                         </button>
                                     </div>
@@ -426,9 +413,9 @@ function App() {
             case 'welcome':
             default:
                 return (
-                    <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 p-8 bg-slate-800 rounded-lg shadow-sm">
-                        <WelcomeIcon className="w-32 h-32 mb-6 text-slate-600" />
-                        <h2 className="text-3xl font-bold text-white mb-2">Welcome to BGArt Mockup</h2>
+                    <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 p-8 bg-[#251740] rounded-lg shadow-sm">
+                        <WelcomeIcon className="w-32 h-32 mb-6 text-gray-500" />
+                        <h2 className="text-3xl font-bold text-white mb-2">Welcome to Şikşak Mockup</h2>
                         <p className="max-w-md">
                             Follow the steps on the left to upload your backgrounds and products, apply effects, and generate stunning mockups in seconds.
                         </p>
@@ -437,18 +424,25 @@ function App() {
         }
     };
 
+    const handleStart = () => {
+        setAppState('welcome');
+    };
+
+    if (appState === 'splash') {
+        return <SplashScreen onStart={handleStart} />;
+    }
+
     if (appState === 'welcome') {
         return (
             <Welcome 
                 onUpload={(files) => addImages(files, 'background')}
-                onAiGenerate={handleStartAi}
                 onTemplateLoad={handleLoadTemplate}
             />
         );
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-slate-900 transition-colors duration-300">
+        <div className="min-h-screen flex flex-col bg-[#1A0F2D] transition-colors duration-300">
             <Header 
                 showNavButtons={appState === 'editing'}
                 onHomeClick={handleReset}
@@ -457,7 +451,7 @@ function App() {
             {isLoading && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
                     <div className="text-center">
-                        <svg className="animate-spin h-10 w-10 text-cyan-400 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-10 w-10 text-[#F4B83A] mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -479,30 +473,35 @@ function App() {
                     }}
                 />
             )}
+            {errorModalMessage && (
+                <ErrorModal 
+                    message={errorModalMessage}
+                    onClose={() => setErrorModalMessage(null)}
+                />
+            )}
             <main className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
-                <div className="lg:col-span-1 bg-slate-800 rounded-lg p-4 overflow-y-auto custom-scrollbar shadow-sm">
+                <div className="lg:col-span-1 bg-[#251740] rounded-lg p-4 overflow-y-auto custom-scrollbar shadow-sm">
                     <div className="space-y-6">
                         {/* Step 1 */}
                         <ControlSection number={1} title="Add Backgrounds & Logo" isEnabled={true} isComplete={isStep1Complete}>
-                             <div className="flex border-b border-slate-700 mb-4">
-                                {(['upload', 'ai', 'template'] as const).map(tab => (
-                                    <button key={tab} onClick={() => setActiveBgTab(tab)} className={`capitalize px-4 py-2 text-sm font-medium transition-colors ${activeBgTab === tab ? 'border-b-2 border-cyan-400 text-cyan-400' : 'text-slate-400 hover:text-white'}`}>
-                                        {tab === 'ai' ? 'AI Generate' : tab}
+                             <div className="flex border-b border-[#3A2A5D] mb-4">
+                                {(['upload', 'template'] as const).map(tab => (
+                                    <button key={tab} onClick={() => setActiveBgTab(tab)} className={`capitalize px-4 py-2 text-sm font-medium transition-colors ${activeBgTab === tab ? 'border-b-2 border-[#F4B83A] text-[#F4B83A]' : 'text-gray-400 hover:text-white'}`}>
+                                        {tab}
                                     </button>
                                 ))}
                             </div>
                             {activeBgTab === 'upload' && <ImageUploader onUpload={(files) => addImages(files, 'background')} />}
-                            {activeBgTab === 'ai' && <GeminiBackgroundGenerator onGenerationComplete={addAiBackground} setIsLoading={setIsLoading} setLoadingMessage={setLoadingMessage} />}
-                            {activeBgTab === 'template' && <div className="p-4 bg-slate-900/50 rounded-lg"><label className="block text-sm font-medium text-slate-300 mb-2">Load from .zip template:</label><input type="file" accept=".zip" onChange={(e) => e.target.files && handleLoadTemplate(e.target.files[0])} className="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 cursor-pointer"/></div>}
+                            {activeBgTab === 'template' && <div className="p-4 bg-[#1A0F2D]/50 rounded-lg"><label className="block text-sm font-medium text-gray-300 mb-2">Load from .zip template:</label><input type="file" accept=".zip" onChange={(e) => e.target.files && handleLoadTemplate(e.target.files[0])} className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#F4B83A] file:text-black hover:file:bg-yellow-400 cursor-pointer"/></div>}
                             <Gallery images={backgrounds} type="background" onDelete={deleteImage} selectedId={selectedPreviewBgId} onSelect={setSelectedPreviewBgId} isLogoActive={!!logo} />
-                             <div className="mt-4 pt-4 border-t border-slate-700">
+                             <div className="mt-4 pt-4 border-t border-[#3A2A5D]">
                                 <Toggle label="Add Logo" enabled={isLogoEnabled} onChange={handleLogoToggle} />
                                 {isLogoEnabled && (
                                     <div className="mt-4">
                                         {logo ? (
-                                            <div className="flex items-center gap-3 p-2 bg-slate-900/50 rounded-lg">
+                                            <div className="flex items-center gap-3 p-2 bg-[#1A0F2D]/50 rounded-lg">
                                                 <img src={logo.dataUrl} alt={logo.name} className="w-12 h-12 object-cover rounded-md" />
-                                                <div className="flex-grow text-sm text-slate-300 truncate">
+                                                <div className="flex-grow text-sm text-gray-300 truncate">
                                                     {logo.name}
                                                 </div>
                                                 <button onClick={deleteLogo} className="p-1.5 bg-red-600/80 hover:bg-red-500 rounded-full text-white transition-colors">
@@ -540,10 +539,10 @@ function App() {
                         {/* Step 4 */}
                         {isStep4Enabled && (
                             <ControlSection number={4} title="Generate & Download" isEnabled={isStep4Enabled}>
-                                <button onClick={handleGenerateMockups} className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-3 px-4 rounded-lg transition-colors text-lg">
+                                <button onClick={handleGenerateMockups} className="w-full bg-[#F4B83A] hover:bg-yellow-400 text-black font-bold py-3 px-4 rounded-lg transition-colors text-lg">
                                     Generate All Mockups
                                 </button>
-                                {backgrounds.length > 0 && <button onClick={handleSaveTemplateClick} className="w-full mt-4 bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors text-base">
+                                {backgrounds.length > 0 && <button onClick={handleSaveTemplateClick} className="w-full mt-4 bg-transparent hover:bg-[#F4B83A] border border-[#F4B83A] text-[#F4B83A] hover:text-black font-bold py-2 px-4 rounded-lg transition-colors text-base">
                                     Save Settings as Template
                                 </button>}
                             </ControlSection>

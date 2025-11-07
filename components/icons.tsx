@@ -1,14 +1,13 @@
 
 import React from 'react';
 
-export const LogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-    <rect x="7" y="7" width="3" height="3"></rect>
-    <line x1="14" y1="15" x2="14" y2="17"></line>
-    <line x1="17" y1="14" x2="15" y2="14"></line>
-    <path d="M7 14v-2h3"></path>
-    <path d="M15 7h2v5"></path>
+export const SiksakLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <rect x="1" y="4" width="22" height="14" rx="2" stroke="#8F83C7" strokeWidth="2"/>
+    <path d="M7 20L17 20" stroke="#8F83C7" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M12 18V20" stroke="#8F83C7" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M5 14L9 10L12 12L15 9L19 13" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="8" cy="8" r="1.5" fill="#F4B83A"/>
   </svg>
 );
 
@@ -73,6 +72,17 @@ export const RestartIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+{/* Fix: Added missing SparklesIcon. */}
+export const SparklesIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+        <path d="M5 3v4" />
+        <path d="M19 17v4" />
+        <path d="M3 5h4" />
+        <path d="M17 19h4" />
+    </svg>
+);
+
 export const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <polyline points="20 6 9 17 4 12" />
@@ -83,13 +93,6 @@ export const CloseIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <line x1="18" y1="6" x2="6" y2="18" />
     <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
-
-export const SparklesIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="m12 3-1.9 4.8-4.8 1.9 4.8 1.9 1.9 4.8 1.9-4.8 4.8-1.9-4.8-1.9Z"/>
-    <path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"/>
   </svg>
 );
 
