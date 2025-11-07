@@ -18,21 +18,43 @@ export async function drawMockupOnCanvas(
     lightColor?: string,
     canvasElement?: HTMLCanvasElement,
     logo?: ImageItem | null,
-    logoPlacement?: Placement
+    productPlacement?: Placement,
+    logoPlacementOverride?: Placement
 ): Promise<string> {
     const canvas = canvasElement || document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Could not get canvas context');
-    if (!background.placement) throw new Error('Background placement is not set');
+    
+    const finalProductPlacement = productPlacement || background.placement;
+    const finalLogoPlacement = logoPlacementOverride || background.logoPlacement;
+
+    if (!finalProductPlacement) throw new Error('Background placement is not set');
 
     const bgImage = await loadImage(background.dataUrl);
     const productImage = await loadImage(product.dataUrl);
 
-    canvas.width = bgImage.width;
-    canvas.height = bgImage.height;
+    // Fit canvas to image while maintaining aspect ratio, for preview
+    if (canvasElement) {
+        const parent = canvasElement.parentElement;
+        if (parent) {
+            const { clientWidth, clientHeight } = parent;
+            const hRatio = clientWidth / bgImage.width;
+            const vRatio = clientHeight / bgImage.height;
+            const ratio = Math.min(hRatio, vRatio, 1);
+            canvas.width = bgImage.width * ratio;
+            canvas.height = bgImage.height * ratio;
+        } else {
+             canvas.width = bgImage.width;
+             canvas.height = bgImage.height;
+        }
+    } else { // Use full resolution for final generation
+        canvas.width = bgImage.width;
+        canvas.height = bgImage.height;
+    }
+
 
     // 1. Draw background
-    ctx.drawImage(bgImage, 0, 0);
+    ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
 
     // 2. Apply background darkness if lighting is enabled
     if (lighting.enabled) {
@@ -40,7 +62,6 @@ export async function drawMockupOnCanvas(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     
-    // Reset transformations and effects before drawing product
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
@@ -49,24 +70,26 @@ export async function drawMockupOnCanvas(
 
     // 3. Apply shading effect
     if (shading.enabled) {
+        const scaleFactor = canvas.width / bgImage.width;
         const angleRad = (shading.angle * Math.PI) / 180;
         ctx.shadowColor = `rgba(0, 0, 0, ${shading.opacity / 100})`;
-        ctx.shadowBlur = shading.blur;
-        ctx.shadowOffsetX = Math.cos(angleRad) * shading.distance;
-        ctx.shadowOffsetY = Math.sin(angleRad) * shading.distance;
+        ctx.shadowBlur = shading.blur * scaleFactor;
+        ctx.shadowOffsetX = Math.cos(angleRad) * shading.distance * scaleFactor;
+        ctx.shadowOffsetY = Math.sin(angleRad) * shading.distance * scaleFactor;
     }
     
     // 4. Apply lighting effect
     if (lighting.enabled && lightColor) {
+        const scaleFactor = canvas.width / bgImage.width;
         const glows = [];
-        for (let i = 0; i < 5; i++) { // Create multiple layers for a softer glow
-            glows.push(`drop-shadow(0 0 ${lighting.intensity * (i + 1) * 0.5}px ${lightColor})`);
+        for (let i = 0; i < 5; i++) { 
+            glows.push(`drop-shadow(0 0 ${lighting.intensity * (i + 1) * 0.5 * scaleFactor}px ${lightColor})`);
         }
         ctx.filter = glows.join(' ');
     }
 
     // 5. Draw product image
-    const { x, y, width, height } = background.placement;
+    const { x, y, width, height } = finalProductPlacement;
     const destX = x * canvas.width;
     const destY = y * canvas.height;
     const destWidth = width * canvas.width;
@@ -75,17 +98,16 @@ export async function drawMockupOnCanvas(
     ctx.drawImage(productImage, destX, destY, destWidth, destHeight);
 
     // 6. Draw logo
-    if (logo && logoPlacement) {
+    if (logo && finalLogoPlacement) {
         try {
             const logoImage = await loadImage(logo.dataUrl);
-            // Reset effects before drawing logo
             ctx.shadowColor = 'transparent';
             ctx.shadowBlur = 0;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 0;
             ctx.filter = 'none';
 
-            const { x: logoX, y: logoY, width: logoWidth, height: logoHeight } = logoPlacement;
+            const { x: logoX, y: logoY, width: logoWidth, height: logoHeight } = finalLogoPlacement;
             const logoDestX = logoX * canvas.width;
             const logoDestY = logoY * canvas.height;
             const logoDestWidth = logoWidth * canvas.width;

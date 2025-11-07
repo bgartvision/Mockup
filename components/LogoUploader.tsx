@@ -1,12 +1,11 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { UploadIcon } from './icons';
 
-interface ImageUploaderProps {
+interface LogoUploaderProps {
     onUpload: (files: FileList | null) => void;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload }) => {
+const LogoUploader: React.FC<LogoUploaderProps> = ({ onUpload }) => {
     const [isDragOver, setIsDragOver] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,7 +42,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload }) => {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onUpload(e.target.files);
-        // Reset input value to allow uploading the same file again
         e.target.value = '';
     };
 
@@ -59,18 +57,17 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload }) => {
             <input
                 ref={inputRef}
                 type="file"
-                multiple
                 accept="image/jpeg, image/png, image/webp"
                 className="hidden"
                 onChange={handleFileChange}
             />
             <UploadIcon className="w-10 h-10 text-slate-500 mb-3" />
             <p className="text-center text-slate-400">
-                <span className="font-semibold text-cyan-500">Click to upload</span> or drag and drop
+                <span className="font-semibold text-cyan-500">Click to upload logo</span> or drag and drop
             </p>
-            <p className="text-xs text-slate-500 mt-1">PNG, JPG, WEBP</p>
+            <p className="text-xs text-slate-500 mt-1">PNG or JPG, 500x500px recommended</p>
         </div>
     );
 };
 
-export default ImageUploader;
+export default LogoUploader;

@@ -35,9 +35,9 @@ const GeminiBackgroundGenerator: React.FC<GeminiBackgroundGeneratorProps> = ({ o
     };
 
     return (
-        <div className="space-y-3 p-4 bg-gray-900/50 rounded-lg">
+        <div className="space-y-3 p-4 bg-slate-900/50 rounded-lg">
             <div>
-                 <label htmlFor="prompt" className="block text-sm font-medium text-gray-300 mb-1">
+                 <label htmlFor="prompt" className="block text-sm font-medium text-slate-300 mb-1">
                     Describe the background you want to create:
                 </label>
                 <textarea
@@ -46,7 +46,7 @@ const GeminiBackgroundGenerator: React.FC<GeminiBackgroundGeneratorProps> = ({ o
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="e.g., A clean, minimalist desk setup with soft morning light"
                     rows={3}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm text-white focus:ring-cyan-500 focus:border-cyan-500 placeholder-gray-500"
+                    className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-sm text-white focus:ring-cyan-500 focus:border-cyan-500 placeholder-slate-500"
                 />
             </div>
             {error && <p className="text-sm text-red-400">{error}</p>}

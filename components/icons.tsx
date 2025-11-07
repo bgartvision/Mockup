@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export const LogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -106,4 +107,32 @@ export const EyeOffIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M6.5 17.5c-2.6-1.6-4.5-4.5-4.5-4.5s1.9-2.9 4.5-4.5c.73-.46 1.5-.8 2.3-.99" />
     <line x1="2" y1="2" x2="22" y2="22" />
   </svg>
+);
+
+export const FileZipIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="M21 9V7.5L14.5 2H6a2 2 0 0 0-2 2v12" />
+    <polyline points="14 2 14 8 20 8" />
+    <path d="M10 12h-1" />
+    <path d="M10 18h-1" />
+    <path d="M10 15h-1" />
+    <path d="M13 12h1" />
+    <path d="M13 18h1" />
+    <path d="M13 15h1" />
+  </svg>
+);
+
+export const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+);
+
+export const ArrowLeftIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <line x1="19" y1="12" x2="5" y2="12" />
+        <polyline points="12 19 5 12 12 5" />
+    </svg>
 );

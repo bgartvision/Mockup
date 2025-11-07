@@ -19,6 +19,7 @@ export interface ShadingOptions {
   distance: number;
   blur: number;
   opacity: number;
+  previewVisible: boolean;
 }
 
 export interface LightingColor {
@@ -32,6 +33,7 @@ export interface LightingOptions {
   backgroundDarkness: number;
   colors: LightingColor[];
   activeColorId: string | null;
+  previewVisible: boolean;
 }
 
 export type WorkspaceView = 'welcome' | 'preview' | 'results';
@@ -56,4 +58,8 @@ export interface TemplateData {
     }[];
     shadingOptions: ShadingOptions;
     lightingOptions: LightingOptions;
+    logo?: {
+        name: string;
+        fileName: string;
+    };
 }

@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Batch Mockup Generator</title>
+    <title>BGArt Mockup</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,18 +13,19 @@
       body {
         font-family: 'Inter', sans-serif;
       }
+      /* Dark theme scrollbar */
       .custom-scrollbar::-webkit-scrollbar {
         width: 8px;
       }
       .custom-scrollbar::-webkit-scrollbar-track {
-        background: #1f2937; /* bg-gray-800 */
+        background: #1e293b; /* slate-800 */
       }
       .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #4b5563; /* bg-gray-600 */
+        background: #475569; /* slate-600 */
         border-radius: 4px;
       }
       .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #6b7280; /* bg-gray-500 */
+        background: #64748b; /* slate-500 */
       }
     </style>
 <script type="importmap">
@@ -42,7 +42,7 @@
 }
 </script>
 </head>
-<body class="bg-gray-900 text-gray-200">
+<body class="bg-slate-900 text-slate-200">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

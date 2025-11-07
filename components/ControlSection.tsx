@@ -1,19 +1,21 @@
 
 import React from 'react';
+import { CheckIcon } from './icons';
 
 interface ControlSectionProps {
     number: number;
     title: string;
     isEnabled: boolean;
     children: React.ReactNode;
+    isComplete?: boolean;
 }
 
-const ControlSection: React.FC<ControlSectionProps> = ({ number, title, isEnabled, children }) => {
+const ControlSection: React.FC<ControlSectionProps> = ({ number, title, isEnabled, children, isComplete }) => {
     return (
-        <div className={`border-l-4 p-4 rounded-r-lg transition-all duration-300 ${isEnabled ? 'border-cyan-500 bg-gray-900/50' : 'border-gray-600 bg-gray-900/20 opacity-50 pointer-events-none'}`}>
-            <div className="flex items-center mb-4">
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-lg mr-3 ${isEnabled ? 'bg-cyan-500 text-black' : 'bg-gray-600 text-gray-300'}`}>
-                    {number}
+        <div className={`transition-all duration-300 ${isEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+             <div className="flex items-center mb-4">
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-lg mr-3 ${isComplete ? 'bg-green-500 text-white' : 'bg-cyan-500 text-black'}`}>
+                    {isComplete ? <CheckIcon className="w-5 h-5"/> : number}
                 </div>
                 <h2 className="text-xl font-bold text-white">{title}</h2>
             </div>
