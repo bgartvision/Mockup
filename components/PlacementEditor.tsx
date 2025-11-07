@@ -1,42 +1,82 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { ImageItem, Placement } from '../types';
 import { CheckIcon, CloseIcon } from './icons';
 
 interface PlacementEditorProps {
-    image: ImageItem;
+    background: ImageItem;
+    logo: ImageItem | null;
     onClose: () => void;
-    onSave: (id: string, placement: Placement) => void;
+    onSave: (id: string, placements: { product: Placement; logo?: Placement }) => void;
 }
 
-const PlacementEditor: React.FC<PlacementEditorProps> = ({ image, onClose, onSave }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const imgRef = useRef<HTMLImageElement>(null);
-    const boxRef = useRef<HTMLDivElement>(null);
+const PlacementBox = ({ box, setBox, action, setAction, setStartPos, setStartBox, target, color, label }: any) => {
+    const handleMouseDown = (e: React.MouseEvent, type: 'move' | 'resize', corner?: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setAction({ type, target, corner });
+        setStartPos({ x: e.clientX, y: e.clientY });
+        setStartBox(box);
+    };
 
-    const [box, setBox] = useState({ x: 15, y: 15, width: 70, height: 70 }); // in percentage
-    const [action, setAction] = useState<{ type: 'move' | 'resize', corner?: string } | null>(null);
+    return (
+        <div
+            className="absolute bg-opacity-20 cursor-move select-none"
+            style={{
+                left: `${box.x}%`,
+                top: `${box.y}%`,
+                width: `${box.width}%`,
+                height: `${box.height}%`,
+                border: `2px dashed ${color}`,
+                backgroundColor: `${color}33`,
+            }}
+            onMouseDown={(e) => handleMouseDown(e, 'move')}
+        >
+            <div className="absolute -top-6 left-0 text-xs font-bold px-1.5 py-0.5 rounded-sm" style={{backgroundColor: color, color: 'black' }}>{label}</div>
+            {['tl', 'tr', 'bl', 'br'].map(corner => (
+                <div
+                    key={corner}
+                    className={`absolute w-3 h-3 bg-white rounded-full -m-1.5 border-2`}
+                    style={{
+                        borderColor: color,
+                        cursor: corner.includes('t') || corner.includes('b') ? (corner.includes('l') || corner.includes('r') ? (corner.startsWith('t') && corner.endsWith('l') || corner.startsWith('b') && corner.endsWith('r') ? 'nwse-resize' : 'nesw-resize') : 'ns-resize') : 'ew-resize',
+                        top: corner.includes('t') ? 0 : 'auto',
+                        bottom: corner.includes('b') ? 0 : 'auto',
+                        left: corner.includes('l') ? 0 : 'auto',
+                        right: corner.includes('r') ? 0 : 'auto',
+                    }}
+                    onMouseDown={(e) => handleMouseDown(e, 'resize', corner)}
+                />
+            ))}
+        </div>
+    );
+};
+
+const PlacementEditor: React.FC<PlacementEditorProps> = ({ background, logo, onClose, onSave }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [productBox, setProductBox] = useState({ x: 15, y: 15, width: 70, height: 70 });
+    const [logoBox, setLogoBox] = useState({ x: 5, y: 5, width: 20, height: 20 });
+    const [action, setAction] = useState<{ type: 'move' | 'resize', target: 'product' | 'logo', corner?: string } | null>(null);
     const [startPos, setStartPos] = useState({ x: 0, y: 0 });
     const [startBox, setStartBox] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
     useEffect(() => {
-        if (image.placement) {
-            setBox({
-                x: image.placement.x * 100,
-                y: image.placement.y * 100,
-                width: image.placement.width * 100,
-                height: image.placement.height * 100,
+        if (background.placement) {
+            setProductBox({
+                x: background.placement.x * 100,
+                y: background.placement.y * 100,
+                width: background.placement.width * 100,
+                height: background.placement.height * 100,
             });
         }
-    }, [image.placement]);
-
-    const handleMouseDown = (e: React.MouseEvent, type: 'move' | 'resize', corner?: string) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setAction({ type, corner });
-        setStartPos({ x: e.clientX, y: e.clientY });
-        setStartBox(box);
-    };
+        if (background.logoPlacement) {
+            setLogoBox({
+                x: background.logoPlacement.x * 100,
+                y: background.logoPlacement.y * 100,
+                width: background.logoPlacement.width * 100,
+                height: background.logoPlacement.height * 100,
+            });
+        }
+    }, [background.placement, background.logoPlacement]);
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
         if (!action || !containerRef.current) return;
@@ -46,7 +86,9 @@ const PlacementEditor: React.FC<PlacementEditorProps> = ({ image, onClose, onSav
         const rect = containerRef.current.getBoundingClientRect();
         const dx = (e.clientX - startPos.x) / rect.width * 100;
         const dy = (e.clientY - startPos.y) / rect.height * 100;
-
+        const currentBox = action.target === 'product' ? productBox : logoBox;
+        const setBox = action.target === 'product' ? setProductBox : setLogoBox;
+        
         let newBox = { ...startBox };
 
         if (action.type === 'move') {
@@ -68,39 +110,45 @@ const PlacementEditor: React.FC<PlacementEditorProps> = ({ image, onClose, onSav
             if (newBox.height < 5) newBox.height = 5;
         }
         
-        // boundary checks
         if (newBox.x < 0) newBox.x = 0;
         if (newBox.y < 0) newBox.y = 0;
         if (newBox.x + newBox.width > 100) newBox.x = 100 - newBox.width;
         if (newBox.y + newBox.height > 100) newBox.y = 100 - newBox.height;
 
         setBox(newBox);
-
-    }, [action, startPos, startBox]);
+    }, [action, startPos, startBox, productBox, logoBox]);
 
     const handleMouseUp = useCallback(() => {
         setAction(null);
     }, []);
     
     useEffect(() => {
-        if (action) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
-        }
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [action, handleMouseMove, handleMouseUp]);
+    }, [handleMouseMove, handleMouseUp]);
 
     const handleSave = () => {
-        const placement: Placement = {
-            x: box.x / 100,
-            y: box.y / 100,
-            width: box.width / 100,
-            height: box.height / 100,
+        const placements: { product: Placement; logo?: Placement } = {
+            product: {
+                x: productBox.x / 100,
+                y: productBox.y / 100,
+                width: productBox.width / 100,
+                height: productBox.height / 100,
+            }
         };
-        onSave(image.id, placement);
+        if (logo) {
+            placements.logo = {
+                x: logoBox.x / 100,
+                y: logoBox.y / 100,
+                width: logoBox.width / 100,
+                height: logoBox.height / 100,
+            };
+        }
+        onSave(background.id, placements);
     };
 
     return (
@@ -114,39 +162,33 @@ const PlacementEditor: React.FC<PlacementEditorProps> = ({ image, onClose, onSav
                 </button>
             </div>
             <div className="relative w-full h-full max-w-6xl max-h-[90vh] flex items-center justify-center" ref={containerRef}>
-                <img ref={imgRef} src={image.dataUrl} alt="background" className="max-w-full max-h-full object-contain select-none" />
-                <div
-                    ref={boxRef}
-                    className="absolute border-2 border-cyan-400 border-dashed bg-cyan-400/20 cursor-move select-none"
-                    style={{
-                        left: `${box.x}%`,
-                        top: `${box.y}%`,
-                        width: `${box.width}%`,
-                        height: `${box.height}%`,
-                    }}
-                    onMouseDown={(e) => handleMouseDown(e, 'move')}
-                >
-                    {['tl', 'tr', 'bl', 'br', 't', 'b', 'l', 'r'].map(corner => {
-                        const cursorMap: {[key: string]: string} = {
-                            tl: 'cursor-nwse-resize', tr: 'cursor-nesw-resize',
-                            bl: 'cursor-nesw-resize', br: 'cursor-nwse-resize',
-                            t: 'cursor-ns-resize', b: 'cursor-ns-resize',
-                            l: 'cursor-ew-resize', r: 'cursor-ew-resize',
-                        }
-                        const positionMap: {[key: string]: string} = {
-                            tl: 'top-0 left-0', tr: 'top-0 right-0',
-                            bl: 'bottom-0 left-0', br: 'bottom-0 right-0',
-                            t: 'top-0 left-1/2 -translate-x-1/2', b: 'bottom-0 left-1/2 -translate-x-1/2',
-                            l: 'left-0 top-1/2 -translate-y-1/2', r: 'right-0 top-1/2 -translate-y-1/2',
-                        }
-                         return (<div
-                            key={corner}
-                            className={`absolute w-3 h-3 bg-cyan-400 rounded-full -m-1.5 ${cursorMap[corner]}`}
-                            style={{transform: positionMap[corner].includes('translate') ? 'translate(-50%, -50%)' : undefined, ...Object.fromEntries(positionMap[corner].split(' ').map(s => s.split('-')))}}
-                            onMouseDown={(e) => handleMouseDown(e, 'resize', corner)}
-                        />)
-                    })}
-                </div>
+                <img src={background.dataUrl} alt="background" className="max-w-full max-h-full object-contain select-none" />
+                
+                <PlacementBox 
+                    box={productBox} 
+                    setBox={setProductBox} 
+                    action={action} 
+                    setAction={setAction} 
+                    setStartPos={setStartPos} 
+                    setStartBox={setStartBox}
+                    target="product" 
+                    color="#22d3ee"
+                    label="Product"
+                />
+
+                {logo && (
+                    <PlacementBox 
+                        box={logoBox} 
+                        setBox={setLogoBox} 
+                        action={action} 
+                        setAction={setAction} 
+                        setStartPos={setStartPos} 
+                        setStartBox={setStartBox}
+                        target="logo" 
+                        color="#34d399"
+                        label="Logo"
+                    />
+                )}
             </div>
         </div>
     );

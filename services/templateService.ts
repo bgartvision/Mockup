@@ -32,6 +32,7 @@ export async function createTemplate(
             id: bg.id,
             name: bg.name,
             placement: bg.placement,
+            logoPlacement: bg.logoPlacement,
             fileName: fileName,
         });
     }
@@ -72,6 +73,7 @@ export async function loadTemplate(zipFile: File): Promise<{
                 name: bgData.name,
                 dataUrl: dataUrl,
                 placement: bgData.placement,
+                logoPlacement: bgData.logoPlacement,
             });
         }
     }

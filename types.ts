@@ -10,6 +10,7 @@ export interface ImageItem {
   name: string;
   dataUrl: string;
   placement?: Placement;
+  logoPlacement?: Placement;
 }
 
 export interface ShadingOptions {
@@ -50,6 +51,7 @@ export interface TemplateData {
         id: string;
         name: string;
         placement: Placement;
+        logoPlacement?: Placement;
         fileName: string;
     }[];
     shadingOptions: ShadingOptions;

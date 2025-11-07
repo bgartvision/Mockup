@@ -1,5 +1,5 @@
 
-import type { ImageItem, ShadingOptions, LightingOptions } from '../types';
+import type { ImageItem, ShadingOptions, LightingOptions, Placement } from '../types';
 
 function loadImage(src: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
@@ -16,7 +16,9 @@ export async function drawMockupOnCanvas(
     shading: ShadingOptions,
     lighting: LightingOptions,
     lightColor?: string,
-    canvasElement?: HTMLCanvasElement
+    canvasElement?: HTMLCanvasElement,
+    logo?: ImageItem | null,
+    logoPlacement?: Placement
 ): Promise<string> {
     const canvas = canvasElement || document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -72,6 +74,28 @@ export async function drawMockupOnCanvas(
     
     ctx.drawImage(productImage, destX, destY, destWidth, destHeight);
 
-    // 6. Return data URL
+    // 6. Draw logo
+    if (logo && logoPlacement) {
+        try {
+            const logoImage = await loadImage(logo.dataUrl);
+            // Reset effects before drawing logo
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.filter = 'none';
+
+            const { x: logoX, y: logoY, width: logoWidth, height: logoHeight } = logoPlacement;
+            const logoDestX = logoX * canvas.width;
+            const logoDestY = logoY * canvas.height;
+            const logoDestWidth = logoWidth * canvas.width;
+            const logoDestHeight = logoHeight * canvas.height;
+            
+            ctx.drawImage(logoImage, logoDestX, logoDestY, logoDestWidth, logoDestHeight);
+        } catch (error) {
+            console.error("Failed to load or draw logo:", error);
+        }
+    }
+
     return canvas.toDataURL('image/jpeg', 0.9);
 }

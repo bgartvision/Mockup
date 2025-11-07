@@ -5,11 +5,12 @@ import { drawMockupOnCanvas } from '../services/canvasService';
 interface EffectsPreviewProps {
     background?: ImageItem;
     product?: ImageItem;
+    logo?: ImageItem | null;
     shadingOptions: ShadingOptions;
     lightingOptions: LightingOptions;
 }
 
-const EffectsPreview: React.FC<EffectsPreviewProps> = ({ background, product, shadingOptions, lightingOptions }) => {
+const EffectsPreview: React.FC<EffectsPreviewProps> = ({ background, product, logo, shadingOptions, lightingOptions }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -20,7 +21,7 @@ const EffectsPreview: React.FC<EffectsPreviewProps> = ({ background, product, sh
                 : undefined;
             const lightColor = activeColor?.color;
             
-            drawMockupOnCanvas(background, product, shadingOptions, lightingOptions, lightColor, tempCanvas)
+            drawMockupOnCanvas(background, product, shadingOptions, lightingOptions, lightColor, tempCanvas, logo, background.logoPlacement)
                 .then(dataUrl => {
                     const canvas = canvasRef.current;
                     if (!canvas) return;
@@ -45,7 +46,7 @@ const EffectsPreview: React.FC<EffectsPreviewProps> = ({ background, product, sh
                 })
                 .catch(error => console.error("Error drawing preview:", error));
         }
-    }, [background, product, shadingOptions, lightingOptions]);
+    }, [background, product, logo, shadingOptions, lightingOptions]);
 
     if (!background || !product) {
         return (

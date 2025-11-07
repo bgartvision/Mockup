@@ -11,7 +11,7 @@ import PlacementEditor from './components/PlacementEditor';
 import GeminiBackgroundGenerator from './components/GeminiBackgroundGenerator';
 import EffectsEditor from './components/EffectsEditor';
 import EffectsPreview from './components/EffectsPreview';
-import { WelcomeIcon, DownloadIcon, RestartIcon } from './components/icons';
+import { WelcomeIcon, DownloadIcon, RestartIcon, TrashIcon } from './components/icons';
 import { drawMockupOnCanvas } from './services/canvasService';
 import { createTemplate, loadTemplate } from './services/templateService';
 
@@ -22,6 +22,7 @@ const DEFAULT_LIGHTING: LightingOptions = { enabled: false, intensity: 15, backg
 function App() {
     const [backgrounds, setBackgrounds] = useState<ImageItem[]>([]);
     const [products, setProducts] = useState<ImageItem[]>([]);
+    const [logo, setLogo] = useState<ImageItem | null>(null);
     const [shadingOptions, setShadingOptions] = useState<ShadingOptions>(DEFAULT_SHADING);
     const [lightingOptions, setLightingOptions] = useState<LightingOptions>(DEFAULT_LIGHTING);
     
@@ -32,7 +33,10 @@ function App() {
     const [results, setResults] = useState<ResultItem[]>([]);
     const [activeBgTab, setActiveBgTab] = useState<'upload' | 'ai' | 'template'>('upload');
 
-    const allPlacementsSet = useMemo(() => backgrounds.length > 0 && backgrounds.every(bg => !!bg.placement), [backgrounds]);
+    const allPlacementsSet = useMemo(() => 
+        backgrounds.length > 0 && 
+        backgrounds.every(bg => !!bg.placement && (!logo || !!bg.logoPlacement)), 
+    [backgrounds, logo]);
     const isStep2Enabled = allPlacementsSet;
     const isStep3Enabled = isStep2Enabled && products.length > 0;
     const isStep4Enabled = isStep3Enabled;
@@ -69,6 +73,17 @@ function App() {
     const addAiBackground = (item: ImageItem) => {
         setBackgrounds(prev => [...prev, item]);
     };
+    
+    const handleLogoUpload = async (files: FileList | null) => {
+        if (!files || files.length === 0) return;
+        const file = files[0];
+        const newItem = await handleFileToImageItem(file);
+        setLogo(newItem);
+    };
+    
+    const deleteLogo = () => {
+        setLogo(null);
+    };
 
     const deleteImage = (id: string, type: 'background' | 'product') => {
         if (type === 'background') {
@@ -79,34 +94,86 @@ function App() {
         }
     };
     
-    const savePlacement = (id: string, placement: Placement) => {
-        setBackgrounds(prev => prev.map(bg => bg.id === id ? { ...bg, placement } : bg));
+    const savePlacements = (id: string, placements: { product: Placement; logo?: Placement }) => {
+        setBackgrounds(prev => prev.map(bg => bg.id === id ? { ...bg, placement: placements.product, logoPlacement: placements.logo } : bg));
         setActivePlacementEditor(null);
     };
 
     const handleGenerateMockups = async () => {
         setIsLoading(true);
+        setLoadingMessage('Generating mockups...');
         const newResults: ResultItem[] = [];
-        const total = products.length * backgrounds.length * (lightingOptions.enabled && lightingOptions.colors.length > 0 ? lightingOptions.colors.length : 1);
-        let count = 0;
+        
+        const generationJobs: {
+            product: ImageItem;
+            background: ImageItem;
+            shading: ShadingOptions;
+            lighting: LightingOptions;
+            lightColor: string | undefined;
+        }[] = [];
 
         for (const product of products) {
-            for (const background of backgrounds) {
-                if (lightingOptions.enabled && lightingOptions.colors.length > 0) {
-                    for (const light of lightingOptions.colors) {
-                        count++;
-                        setLoadingMessage(`Generating... (${count}/${total})`);
-                        const dataUrl = await drawMockupOnCanvas(background, product, shadingOptions, lightingOptions, light.color);
-                        newResults.push({ id: uuidv4(), productId: product.id, productName: product.name, backgroundName: background.name, lightColor: light.color, dataUrl });
-                    }
-                } else {
-                    count++;
-                    setLoadingMessage(`Generating... (${count}/${total})`);
-                    const dataUrl = await drawMockupOnCanvas(background, product, shadingOptions, lightingOptions, undefined);
-                    newResults.push({ id: uuidv4(), productId: product.id, productName: product.name, backgroundName: background.name, dataUrl });
+            const productJobs = [];
+            
+            if (lightingOptions.enabled && lightingOptions.colors.length > 0) {
+                if (shadingOptions.enabled && backgrounds.length > 0) {
+                    productJobs.push({
+                        product,
+                        background: backgrounds[0],
+                        shading: shadingOptions,
+                        lighting: { ...lightingOptions, enabled: false },
+                        lightColor: undefined,
+                    });
+                }
+                
+                for (let i = 0; i < Math.min(backgrounds.length, lightingOptions.colors.length); i++) {
+                     productJobs.push({
+                        product,
+                        background: backgrounds[i],
+                        shading: shadingOptions,
+                        lighting: lightingOptions,
+                        lightColor: lightingOptions.colors[i].color,
+                    });
+                }
+            } else {
+                for (const background of backgrounds) {
+                    productJobs.push({
+                        product,
+                        background,
+                        shading: shadingOptions,
+                        lighting: lightingOptions,
+                        lightColor: undefined,
+                    });
                 }
             }
+            generationJobs.push(...productJobs);
         }
+        
+        const uniqueJobs = [...new Map(generationJobs.map(job => 
+            [`${job.product.id}-${job.background.id}-${job.lightColor || 'no-color'}`, job]
+        )).values()];
+
+        const total = uniqueJobs.length;
+        if (total === 0) {
+            setIsLoading(false);
+            return;
+        }
+        
+        let count = 0;
+        for (const job of uniqueJobs) {
+            count++;
+            setLoadingMessage(`Generating... (${count}/${total})`);
+            const dataUrl = await drawMockupOnCanvas(job.background, job.product, job.shading, job.lighting, job.lightColor, undefined, logo, job.background.logoPlacement);
+            newResults.push({
+                id: uuidv4(),
+                productId: job.product.id,
+                productName: job.product.name,
+                backgroundName: job.background.name,
+                lightColor: job.lightColor,
+                dataUrl,
+            });
+        }
+
         setResults(newResults);
         setWorkspaceView('results');
         setIsLoading(false);
@@ -148,6 +215,7 @@ function App() {
     const handleReset = () => {
         setBackgrounds([]);
         setProducts([]);
+        setLogo(null);
         setShadingOptions(DEFAULT_SHADING);
         setLightingOptions(DEFAULT_LIGHTING);
         setResults([]);
@@ -193,7 +261,7 @@ function App() {
     const renderWorkspace = () => {
         switch (workspaceView) {
             case 'preview':
-                return <EffectsPreview background={backgrounds[0]} product={products[0]} shadingOptions={shadingOptions} lightingOptions={lightingOptions} />;
+                return <EffectsPreview background={backgrounds[0]} product={products[0]} logo={logo} shadingOptions={shadingOptions} lightingOptions={lightingOptions} />;
             case 'results':
                 const groupedResults = products.map(p => ({
                     ...p,
@@ -257,16 +325,17 @@ function App() {
             )}
             {activePlacementEditor && (
                 <PlacementEditor
-                    image={activePlacementEditor}
+                    background={activePlacementEditor}
+                    logo={logo}
                     onClose={() => setActivePlacementEditor(null)}
-                    onSave={savePlacement}
+                    onSave={savePlacements}
                 />
             )}
             <main className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
                 <div className="lg:col-span-1 bg-gray-800 rounded-lg p-4 overflow-y-auto custom-scrollbar">
                     <div className="space-y-6">
                         {/* Step 1 */}
-                        <ControlSection number={1} title="Add Backgrounds" isEnabled={true}>
+                        <ControlSection number={1} title="Add Backgrounds & Logo" isEnabled={true}>
                              <div className="flex border-b border-gray-700 mb-4">
                                 {(['upload', 'ai', 'template'] as const).map(tab => (
                                     <button key={tab} onClick={() => setActiveBgTab(tab)} className={`capitalize px-4 py-2 text-sm font-medium transition-colors ${activeBgTab === tab ? 'border-b-2 border-cyan-400 text-cyan-400' : 'text-gray-400 hover:text-white'}`}>
@@ -277,7 +346,29 @@ function App() {
                             {activeBgTab === 'upload' && <ImageUploader onUpload={(files) => addImages(files, 'background')} />}
                             {activeBgTab === 'ai' && <GeminiBackgroundGenerator onGenerationComplete={addAiBackground} setIsLoading={setIsLoading} setLoadingMessage={setLoadingMessage} />}
                             {activeBgTab === 'template' && <div className="p-4 bg-gray-900/50 rounded-lg"><label className="block text-sm font-medium text-gray-300 mb-2">Load from .zip template:</label><input type="file" accept=".zip" onChange={(e) => e.target.files && handleLoadTemplate(e.target.files[0])} className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 cursor-pointer"/></div>}
-                            <Gallery images={backgrounds} type="background" onDelete={deleteImage} onEditPlacement={(id) => setActivePlacementEditor(backgrounds.find(bg => bg.id === id) || null)} />
+                            <Gallery images={backgrounds} type="background" onDelete={deleteImage} onEditPlacement={(id) => setActivePlacementEditor(backgrounds.find(bg => bg.id === id) || null)} isLogoActive={!!logo} />
+                             <div className="mt-4 pt-4 border-t border-gray-700">
+                                <h3 className="text-base font-semibold text-gray-200 mb-2">Optional: Add Logo</h3>
+                                {logo ? (
+                                    <div className="flex items-center gap-3 p-2 bg-gray-900/50 rounded-lg">
+                                        <img src={logo.dataUrl} alt={logo.name} className="w-12 h-12 object-cover rounded-md" />
+                                        <div className="flex-grow text-sm text-gray-300 truncate">
+                                            {logo.name}
+                                        </div>
+                                        <button onClick={deleteLogo} className="p-1.5 bg-red-600/80 hover:bg-red-500 rounded-full text-white transition-colors">
+                                            <TrashIcon className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <label htmlFor="logo-upload" className="w-full text-center cursor-pointer p-4 border-2 border-dashed border-gray-600 hover:border-cyan-500 hover:bg-gray-800 rounded-lg block text-sm text-gray-400">
+                                            Click to upload logo
+                                            <span className="block text-xs text-gray-500 mt-1">PNG or JPG, 500x500px recommended</span>
+                                        </label>
+                                         <input id="logo-upload" type="file" accept="image/jpeg, image/png" className="hidden" onChange={(e) => handleLogoUpload(e.target.files)} />
+                                    </div>
+                                )}
+                            </div>
                         </ControlSection>
 
                         {/* Step 2 */}
